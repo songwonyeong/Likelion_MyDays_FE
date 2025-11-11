@@ -1,0 +1,232 @@
+:root{
+  --black:#111;
+  --gray-700:#4b5563;
+  --gray-400:#9ca3af;
+  --kakao:#FEE500;
+  --radius:9999px;
+  --shadow:0 6px 20px rgba(0,0,0,.12);
+}
+
+.auth__wrap{
+  min-height:100dvh;
+  display:grid;
+  place-items:center;
+  background:#fff;
+}
+
+.auth__card{
+  width: min(440px, 92vw);
+  text-align:center;
+}
+
+.auth__title{
+  font-size:40px;
+  line-height:1.15;
+  font-weight:800;
+  color:var(--black);
+  margin:0 0 10px;
+  letter-spacing:.2px;
+}
+
+.auth__subtitle{
+  margin:0 0 28px;
+  color:var(--gray-700);
+  font-size:14px;
+}
+
+.auth__actions{
+  display:grid;
+  gap:14px;
+  margin:0 auto 16px;
+}
+
+.btn{
+  height:52px;
+  border:none;
+  border-radius:var(--radius);
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:var(--shadow);
+  transition:transform .06s ease, filter .2s ease;
+}
+
+.btn:active{ transform: translateY(1px); }
+
+.btn--primary{
+  background:#000;
+  color:#fff;
+}
+
+.btn--kakao{
+  background:var(--kakao);
+  color:#181600;
+}
+
+/* 중앙의 큰 가입 버튼 */
+.btn--xl{
+  display:block;
+  width: 260px;                /* 필요하면 280~320px로 조정 */
+  height: 52px;
+  margin: 28px auto 0;         /* 중앙 정렬 */
+  border-radius: 9999px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.auth__footer{
+  color:var(--gray-400);
+  font-size:13px;
+  margin-top:6px;
+}
+
+.auth__link{
+  color:#000;
+  font-weight:700;
+  text-decoration:none;
+  border-bottom:1px solid #0000;
+}
+.auth__link:hover{ border-bottom-color:#000; }
+
+/* ---------- 로그인/회원가입 공통 입력 ---------- */
+.auth__form {
+  display: grid;
+  gap: 12px;
+  margin: 20px auto 0;
+}
+
+.auth__input {
+  height: 46px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth__input:focus {
+  border-color: #000;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+}
+
+/* 작은 알약 버튼(우측의 '인증코드 전송' / '확인') */
+.btn--pill{
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 9999px;
+  font-size: 14px;
+  background:#000;
+  color:#fff;
+  box-shadow: var(--shadow, 0 6px 20px rgba(0,0,0,.12));
+}
+
+.btn.btn--block{ width:200px; margin:24px auto 0; display: block;}
+.btn--ghost{ background:#000; color:#fff; } /* 버튼 스타일 재사용 */
+
+/* 페이지 공통 래퍼 (상단바 아래 여백 포함) */
+.page{
+  min-height: calc(100dvh - 56px);
+  padding: 32px 16px 48px;
+  background:#fff;
+}
+.form{
+  width: min(520px, 92vw);
+  margin: 0 auto;
+  text-align: left;
+}
+
+.form__group{ display:grid; gap:12px; margin-top:16px; }
+
+/* 보조 문구 (회색) / 에러 문구 (빨강) */
+.form__help{
+  margin: 6px 0 10px 6px;
+  font-size: 13px;
+  color: #9ca3af; /* 회색 */
+}
+.form__help.is-error{ color:#dc2626; } /* 에러: 빨강 */
+
+/* 입력칸 */
+.form__input{
+  width: 100%;
+  height: 44px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 15px;
+  outline: none;
+}
+
+.form__input::placeholder{ color:#b6b6b6; }
+
+.form__input:focus{ border-color:#111; box-shadow:0 0 0 2px rgba(0,0,0,.05); }
+
+.form__row{ display:flex; align-items:center; gap:8px; color:#555; font-size:14px; margin:12px 0 4px; }
+.form__row input[type="checkbox"]{ width:16px; height:16px; }
+
+/* 폼 전체 폭: 입력칸 + gap + 버튼 예상폭 */
+.form--signup{
+  --field-w: 560px;   /* 입력칸 폭(필요시 520~640로 조정) */
+  --gap: 12px;
+  --btn-w: 116px;     /* 버튼 고정 폭 */
+  width: min(calc(var(--field-w) + var(--gap) + var(--btn-w)), 92vw);
+  margin: 0 auto;
+}
+
+.link-muted{ color:#7b7b7b; font-size:14px; text-align:center; margin-top:10px; }
+
+/* 2열: [입력칸(고정폭) | 버튼] */
+.field-inline{
+  display: grid;
+  grid-template-columns: var(--field-w) var(--btn-w);
+  gap: var(--gap);
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+/* ❗ 비밀번호 줄도 같은 2열 래아웃으로, 오른쪽은 '빈 버튼 자리' */
+.field-single{
+  display: grid;
+  grid-template-columns: var(--field-w) var(--btn-w);
+  gap: var(--gap);
+  align-items: center;
+  justify-content: center;
+  margin: 16px auto 0;
+}
+
+.field-single::after{
+  content: "";
+  display: block;
+  width: var(--btn-w);
+  height: 1px;  /* 보이지 않게 */
+}
+
+.field-with-action .form__input:focus {
+  border-color: #000;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+}
+
+/* 버튼(같은 줄 오른쪽, 고정 폭) */
+.action-btn{
+  position: static;             /* ← 중요: absolute 금지 */
+  width: var(--btn-w);
+  height: 44px;                 /* 입력칸과 높이 맞춤 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* 보조문구/에러 */
+.form__help{ margin: 6px 0 10px 6px; font-size:13px; color:#9ca3af; }
+.form__help.is-error{ color:#dc2626; }
+
+/* 중앙 큰 버튼 */
+.btn--xl{
+  display:block;
+  width: 260px; height: 52px;
+  margin: 28px auto 0;
+  border-radius: 9999px;
+  font-size: 18px; font-weight: 800;
+}
