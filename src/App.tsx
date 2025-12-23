@@ -6,8 +6,10 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Main from "./pages/Main";
-import CategoryNew from "./pages/CategoryNew";
+import KakaoCallback from "./pages/KakaoCallback";
+
 import { useAuth } from "./hooks/useAuth";
+import { CategoriesProvider } from "./hooks/useCategories";
 
 type GuardProps = { children: React.ReactNode };
 
@@ -24,55 +26,48 @@ function GuestOnly({ children }: GuardProps) {
   const authed = useAuth();
 
   if (authed === null) return <>Loading...</>;
-  if (authed === true) return <Navigate to="/" replace />;
+  if (authed === true) return <Navigate to="/main" replace />;
 
   return <>{children}</>;
 }
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
+    <CategoriesProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
 
-        <Route
-          path="/login"
-          element={
-            <GuestOnly>
-              <Login />
-            </GuestOnly>
-          }
-        />
+          <Route
+            path="/login"
+            element={
+              <GuestOnly>
+                <Login />
+              </GuestOnly>
+            }
+          />
 
-        <Route
-          path="/signup"
-          element={
-            <GuestOnly>
-              <Signup />
-            </GuestOnly>
-          }
-        />
+          <Route
+            path="/signup"
+            element={
+              <GuestOnly>
+                <Signup />
+              </GuestOnly>
+            }
+          />
 
-        <Route
-          path="/main"
-          element={
-            <RequireAuth>
-              <Main />
-            </RequireAuth>
-          }
-        />
+          <Route
+            path="/main"
+            element={
+              <RequireAuth>
+                <Main />
+              </RequireAuth>
+            }
+          />
 
-        <Route
-          path="/category/new"
-          element={
-            <RequireAuth>
-              <CategoryNew />
-            </RequireAuth>
-          }
-        />
-
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </CategoriesProvider>
   );
 }

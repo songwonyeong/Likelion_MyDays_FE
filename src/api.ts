@@ -23,7 +23,7 @@ let waiters: Array<(t: string | null) => void> = [];
 async function refreshOnce(): Promise<string | null> {
   try {
     const res = await axios.post(
-      `${import.meta.env.VITE_API_BASE}/auth/token/refresh`,
+      `${import.meta.env.VITE_API_BASE}/kakao/auth/refresh`,
       {},
       { withCredentials: true }
     );
@@ -66,5 +66,5 @@ api.interceptors.response.use(
 );
 
 export async function logout() {
-  try { await api.post("/auth/token/logout"); } finally { setAccessToken(null); }
+  try { await api.post("/kakao/auth/logout"); } finally { setAccessToken(null); }
 }

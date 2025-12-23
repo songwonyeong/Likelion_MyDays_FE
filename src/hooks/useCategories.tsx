@@ -1,91 +1,129 @@
 // src/hooks/useCategories.tsx
 import React, { useCallback, useContext, useMemo, useState } from "react";
+import * as CategoriesAPI from "../api/categories";
+import * as TodosAPI from "../api/todos";
 
-export type Todo = {
-  id: string;
-  title: string;
-  done: boolean;
-  dateKey: string; // YYYY-MM-DD
-};
-
-export type Category = {
-  id: string;
+// ===== 모델 =====
+export interface Category {
+  id: number;
   name: string;
   color: string;
-  todos: Todo[];
-};
+  order: number;
+}
+
+export interface Todo {
+  id: number;
+  title: string;
+  memo: string | null;
+  date: string; // yyyy-MM-dd
+  time: string | null;
+  completed: boolean;
+  category: Category;
+}
 
 const k = (n: number) => String(n).padStart(2, "0");
 export const toKey = (d: Date) =>
   `${d.getFullYear()}-${k(d.getMonth() + 1)}-${k(d.getDate())}`;
 
-const todayKey = toKey(new Date());
-
-// 초기 데모 데이터
-const seed: Category[] = [
-  {
-    id: "c-urgent",
-    name: "급한 업무",
-    color: "#ef4444",
-    todos: [{ id: "t-1", title: "청년주택신청", done: false, dateKey: todayKey }],
-  },
-  {
-    id: "c-routine",
-    name: "매일 루틴",
-    color: "#7c3aed",
-    todos: [
-      { id: "t-2", title: "60-단어 암기", done: false, dateKey: todayKey },
-      { id: "t-3", title: "60-15m 스터디", done: true, dateKey: todayKey },
-      { id: "t-4", title: "듀오링고", done: true, dateKey: todayKey },
-    ],
-  },
-];
+// ===== store 타입 =====
+export type CategoryWithTodos = Category & { todos: Todo[] };
 
 type Store = {
-  categories: Category[];
-  createCategory: (name: string, color: string) => void;
-  addTodo: (catId: string, title: string, dateKey: string) => void;
-  toggleTodo: (catId: string, todoId: string) => void;
+  selectedDateKey: string;
+  setSelectedDateKey: (k: string) => void;
+
+  categories: CategoryWithTodos[];
+
+  // 서버 동기화
+  refresh: () => Promise<void>;
+
+  createCategory: (name: string, color: string) => Promise<void>;
+
+  addTodo: (categoryId: number, title: string, dateKey: string) => Promise<void>;
+  toggleTodo: (categoryId: number, todoId: number) => Promise<void>;
+  deleteTodo: (todoId: number) => Promise<void>;
+
+  // 드래그 정렬은 “지금 백엔드 스펙에 없음” → 일단 UI용으로만 유지(서버 반영 X)
   reorderCategory: (from: number, to: number) => void;
-  reorderTodo: (catId: string, from: number, to: number) => void;
-  getDayStats: (dateKey: string) => {
-    total: number;
-    done: number;
-    left: number; // 남은 개수(=total-done)
-    colors: string[]; // 그날 사용된 카테고리 색들
-  };
+  reorderTodo: (catId: number, from: number, to: number) => void;
+
+  getDayStats: (dateKey: string) => { total: number; done: number; left: number; colors: string[] };
 };
 
 const CategoriesContext = React.createContext<Store | null>(null);
 
 export const CategoriesProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [categories, setCategories] = useState<Category[]>(seed);
+  const [selectedDateKey, setSelectedDateKey] = useState<string>(toKey(new Date()));
+  const [categories, setCategories] = useState<CategoryWithTodos[]>([]);
 
-  const createCategory = useCallback((name: string, color: string) => {
-    const id = `c_${Date.now()}`;
-    setCategories((prev) => [...prev, { id, name, color, todos: [] }]);
+  const buildCategories = useCallback((cats: Category[], todos: Todo[]) => {
+    const map = new Map<number, CategoryWithTodos>();
+    for (const c of cats) map.set(c.id, { ...c, todos: [] });
+    for (const t of todos) {
+      const owner = map.get(t.category.id);
+      if (owner) owner.todos.push(t);
+    }
+    // order 기준 정렬
+    return Array.from(map.values()).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, []);
 
-  const addTodo = useCallback((catId: string, title: string, dateKey: string) => {
-    setCategories((prev) =>
-      prev.map((c) =>
-        c.id === catId
-          ? { ...c, todos: [...c.todos, { id: `t_${Date.now()}`, title, done: false, dateKey }] }
-          : c
-      )
-    );
-  }, []);
+  const refresh = useCallback(async () => {
+    const [cats, todos] = await Promise.all([
+      CategoriesAPI.getCategories(),
+      TodosAPI.getTodos({ date: selectedDateKey }),
+    ]);
 
-  const toggleTodo = useCallback((catId: string, todoId: string) => {
-    setCategories((prev) =>
-      prev.map((c) =>
-        c.id === catId
-          ? { ...c, todos: c.todos.map((t) => (t.id === todoId ? { ...t, done: !t.done } : t)) }
-          : c
-      )
-    );
-  }, []);
+    // API 응답을 프론트 모델로 맞추기(타입 호환)
+    const catModel: Category[] = cats.map((c) => ({ id: c.id, name: c.name, color: c.color, order: c.order ?? 0 }));
+    const todoModel: Todo[] = todos.map((t) => ({
+      id: t.id,
+      title: t.title,
+      memo: t.memo ?? null,
+      date: t.date,
+      time: t.time ?? null,
+      completed: t.completed,
+      category: {
+        id: t.category.id,
+        name: t.category.name,
+        color: t.category.color,
+        order: t.category.order ?? 0,
+      },
+    }));
 
+    setCategories(buildCategories(catModel, todoModel));
+  }, [selectedDateKey, buildCategories]);
+
+  const createCategory = useCallback(async (name: string, color: string) => {
+    await CategoriesAPI.createCategory({ name, color });
+    await refresh();
+  }, [refresh]);
+
+  const addTodo = useCallback(async (categoryId: number, title: string, dateKey: string) => {
+    await TodosAPI.createTodo({
+      categoryId,
+      content: title, // ✅ UI title -> 서버 content 매핑
+      date: dateKey,
+    });
+    await refresh();
+  }, [refresh]);
+
+  const toggleTodo = useCallback(async (_categoryId: number, todoId: number) => {
+    // 현재 state에서 완료값 찾아서 뒤집기
+    let current = false;
+    for (const c of categories) {
+      const t = c.todos.find((x) => x.id === todoId);
+      if (t) { current = t.completed; break; }
+    }
+    await TodosAPI.toggleTodoDone(todoId, !current);
+    await refresh();
+  }, [categories, refresh]);
+
+  const deleteTodo = useCallback(async (todoId: number) => {
+    await TodosAPI.deleteTodo(todoId);
+    await refresh();
+  }, [refresh]);
+
+  // 정렬은 서버 반영 스펙이 없으니 UI에서만 처리
   const reorderCategory = useCallback((from: number, to: number) => {
     setCategories((prev) => {
       const arr = [...prev];
@@ -95,7 +133,7 @@ export const CategoriesProvider: React.FC<React.PropsWithChildren> = ({ children
     });
   }, []);
 
-  const reorderTodo = useCallback((catId: string, from: number, to: number) => {
+  const reorderTodo = useCallback((catId: number, from: number, to: number) => {
     setCategories((prev) =>
       prev.map((c) => {
         if (c.id !== catId) return c;
@@ -107,34 +145,37 @@ export const CategoriesProvider: React.FC<React.PropsWithChildren> = ({ children
     );
   }, []);
 
-  const getDayStats = useCallback(
-    (dateKey: string) => {
-      let total = 0;
-      let done = 0;
-      const colors: string[] = [];
-      for (const c of categories) {
-        const list = c.todos.filter((t) => t.dateKey === dateKey);
-        if (list.length) colors.push(c.color);
-        total += list.length;
-        done += list.filter((t) => t.done).length;
-      }
-      return { total, done, left: total - done, colors };
-    },
-    [categories]
-  );
+  const getDayStats = useCallback((dateKey: string) => {
+    // 현재는 “선택 날짜 todos만” 로딩 중이라,
+    // 달력의 다른 날짜 stats는 백엔드에 “월 단위 조회”가 있어야 정확해짐.
+    // 우선 선택된 날짜만 stats 보장.
+    if (dateKey !== selectedDateKey) return { total: 0, done: 0, left: 0, colors: [] };
 
-  const value = useMemo<Store>(
-    () => ({
-      categories,
-      createCategory,
-      addTodo,
-      toggleTodo,
-      reorderCategory,
-      reorderTodo,
-      getDayStats,
-    }),
-    [categories, createCategory, addTodo, toggleTodo, reorderCategory, reorderTodo, getDayStats]
-  );
+    let total = 0;
+    let done = 0;
+    const colors: string[] = [];
+    for (const c of categories) {
+      const list = c.todos.filter((t) => t.date === dateKey);
+      if (list.length) colors.push(c.color);
+      total += list.length;
+      done += list.filter((t) => t.completed).length;
+    }
+    return { total, done, left: total - done, colors };
+  }, [categories, selectedDateKey]);
+
+  const value = useMemo<Store>(() => ({
+    selectedDateKey,
+    setSelectedDateKey,
+    categories,
+    refresh,
+    createCategory,
+    addTodo,
+    toggleTodo,
+    deleteTodo,
+    reorderCategory,
+    reorderTodo,
+    getDayStats,
+  }), [selectedDateKey, categories, refresh, createCategory, addTodo, toggleTodo, deleteTodo, reorderCategory, reorderTodo, getDayStats]);
 
   return <CategoriesContext.Provider value={value}>{children}</CategoriesContext.Provider>;
 };

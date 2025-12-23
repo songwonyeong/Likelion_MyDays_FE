@@ -1,46 +1,17 @@
-/* ===== Reset & Base ===== */
+@import "tailwindcss";
+
+/* reset 정도만 */
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 body {
   margin: 0;
-  background: #fff;      /* 기본 흰 배경 */
-  color: #111;           /* 기본 글자색 */
-  font-family: Pretendard, system-ui, -apple-system, Segoe UI, Roboto, 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  background: #fff;
+  color: #111;
+  font-family: Pretendard, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
+#root { width: 100%; }
 
-/* Vite 템플릿 기본값 제거 (왼쪽 여백/가운데 정렬 강제 등) */
-#root {
-  width: 100%;
-  max-width: none;       /* 1280px 제한 제거 */
-  margin: 0;             /* auto 마진 제거 */
-  padding: 0;            /* 2rem 패딩 제거 */
-  text-align: unset;     /* 중앙 정렬 강제 제거 */
-  display: block;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-/* 링크 기본 */
-a { color: inherit; text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-/* 제목 기본 */
-h1 { font-size: 3.2em; line-height: 1.1; }
-
-/* 버튼 기본 (필요시 유지) */
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  color: #fff;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover { border-color: #646cff; }
-button:focus,
-button:focus-visible { outline: 4px auto -webkit-focus-ring-color; }
-
-/* 라이트/다크 자동 전환 제거
-   (원하면 나중에 테마 토글로 다시 추가) */
