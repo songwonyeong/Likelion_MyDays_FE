@@ -6,7 +6,8 @@ export interface TodoResp {
 
   // 응답은 백엔드가 snake_case로 내려주지만,
   // TodoController.toResp()에서 categoryId는 그대로 categoryId로 내려주고 있음(현재 코드 기준)
-  categoryId: number;
+  categoryId?: number;
+  category_id?: number;
   category_name: string;
   category_color: string;
 

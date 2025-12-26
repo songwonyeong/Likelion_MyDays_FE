@@ -29,17 +29,17 @@ export default function TodoItem({
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, index)}
       className="flex items-center justify-between rounded-xl border border-gray-200 px-3 py-2"
-      style={{ background: todo.completed ? `${categoryColor}10` : "#fff" }}
+      style={{ background: todo.done ? `${categoryColor}10` : "#fff" }} // ✅ completed -> done
     >
       <label className="flex items-center gap-2 cursor-pointer select-none">
         <input
           type="checkbox"
-          checked={todo.completed}
+          checked={todo.done} // ✅ completed -> done
           onChange={() => onToggle(todo.id)}
           className="w-4 h-4 rounded-md border border-gray-300 bg-white accent-black focus:ring-0"
         />
-        <span className={todo.completed ? "line-through text-gray-400" : "text-gray-900"}>
-          {todo.title}
+        <span className={todo.done ? "line-through text-gray-400" : "text-gray-900"}>
+          {todo.content} {/* ✅ title -> content */}
         </span>
       </label>
 
