@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { logout } from "../api/auth";
-import { clearAccessToken } from "../api/tokenStore";
+import { clearAccessToken } from "../lib/tokenStore";
 
 export default function LogoutButton() {
   const navigate = useNavigate();

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { logout } from "../api/auth";
 import { apiClient } from "../lib/apiClient";
 import { useCategories } from "../hooks/useCategories";
-import { clearAccessToken, setAccessToken } from "../lib/tokenStore";
+import { clearAccessToken} from "../lib/tokenStore";
 
 type Props = { title?: string };
 

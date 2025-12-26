@@ -6,7 +6,6 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Main from "./pages/Main";
-import KakaoCallback from "./pages/KakaoCallback";
 
 import { useAuth } from "./hooks/useAuth";
 import { CategoriesProvider } from "./hooks/useCategories";

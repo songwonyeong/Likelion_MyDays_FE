@@ -1,5 +1,4 @@
 // src/components/TodoCard.tsx
-import React from "react";
 import type { CategoryWithTodos } from "../hooks/useCategories";
 import CategoryCard from "./CategoryCard";
 

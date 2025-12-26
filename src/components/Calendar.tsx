@@ -1,5 +1,5 @@
 // src/components/Calendar.tsx
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type Meta = { total: number; done: number; left: number; colors: string[] };
 
