@@ -490,6 +490,7 @@ export const CategoriesProvider: React.FC<React.PropsWithChildren> = ({ children
   }, []);
 
   const refresh = useCallback(async () => {
+  try {
     const [cats, todos] = await Promise.all([
       CategoriesAPI.getCategories(),
       TodosAPI.getTodos({ date: selectedDateKey }),
@@ -515,7 +516,12 @@ export const CategoriesProvider: React.FC<React.PropsWithChildren> = ({ children
     }));
 
     setCategories(buildCategories(catModel, todoModel));
-  }, [selectedDateKey, buildCategories]);
+  } catch (e) {
+    // 🔥 중요: 401 등 에러 시 상태를 건드리지 않는다
+    console.warn("refresh failed, keep previous state");
+  }
+}, [selectedDateKey, buildCategories]);
+
 
   /* ================== Category ================== */
   const createCategory = useCallback(async (name: string, color: string) => {
