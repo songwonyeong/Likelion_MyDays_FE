@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { logout } from "../api/auth";
 import { apiClient } from "../lib/apiClient";
 import { useCategories } from "../hooks/useCategories";
-import { clearAccessToken} from "../lib/tokenStore";
+import { clearAccessToken } from "../lib/tokenStore";
+import { fetchMe } from "../api/members";
 
 type Props = { title?: string };
 
@@ -32,11 +33,11 @@ export default function MainTopBar({ title = "MyDays" }: Props) {
   const [openCreateCat, setOpenCreateCat] = useState(false);
   const [openManageCat, setOpenManageCat] = useState(false);
 
-  // 내정보(일단 임시)
-  const [me] = useState<UserInfo>({
-    name: "사용자",
-    email: "user@example.com",
-    provider: "LOCAL",
+  // ✅ 내정보 (실제 API 연동)
+  const [me, setMe] = useState<UserInfo>({
+    name: undefined,
+    email: undefined,
+    provider: "KAKAO", // 요구사항대로 하드코딩
   });
 
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -64,8 +65,26 @@ export default function MainTopBar({ title = "MyDays" }: Props) {
     setOpenLogoutModal(true);
   };
 
-  const openMe = () => {
+  // ✅ "내 정보" 클릭 시에만 호출 (페이지 로드시 X)
+  const openMe = async () => {
     setOpenMenu(false);
+
+    try {
+      const data = await fetchMe();
+      setMe({
+        name: data.name,
+        email: data.email,
+        provider: "KAKAO", // 백엔드가 안 주니까 프론트에서 고정
+      });
+    } catch (e) {
+      console.error("내 정보 조회 실패", e);
+      // 실패해도 모달은 열어주고, 값은 "-"로 보이게 유지
+      setMe((prev) => ({
+        ...prev,
+        provider: prev.provider ?? "KAKAO",
+      }));
+    }
+
     setOpenMeModal(true);
   };
 
@@ -137,7 +156,7 @@ export default function MainTopBar({ title = "MyDays" }: Props) {
                     alert("AI 할일 생성은 아직 연결 전");
                   }}
                 />
-                <MenuItem label="내 정보" onClick={openMe} />
+                <MenuItem label="내 정보" onClick={() => void openMe()} />
                 <div className="h-px bg-gray-100" />
                 <MenuItem label="로그아웃" danger onClick={requestLogout} />
               </div>
@@ -199,7 +218,7 @@ export default function MainTopBar({ title = "MyDays" }: Props) {
         <div className="space-y-3">
           <InfoRow label="이름" value={me.name ?? "-"} />
           <InfoRow label="이메일" value={me.email ?? "-"} />
-          <InfoRow label="로그인 방식" value={me.provider ?? "-"} />
+          <InfoRow label="로그인 방식" value={me.provider ?? "KAKAO"} />
         </div>
 
         <div className="mt-6 flex justify-end">
@@ -507,7 +526,9 @@ function CategoryRow({
         }}
         className={[
           "px-3 py-1.5 rounded-lg text-sm border",
-          dirty ? "bg-gray-900 text-white border-gray-900" : "bg-gray-100 text-gray-400 border-gray-200",
+          dirty
+            ? "bg-gray-900 text-white border-gray-900"
+            : "bg-gray-100 text-gray-400 border-gray-200",
         ].join(" ")}
       >
         저장
