@@ -4,17 +4,14 @@ import { getAccessToken, setAccessToken, clearAccessToken } from "./tokenStore";
 
 type RefreshResponse = {
   accessToken?: string;
-  access_token?: string; // 백엔드 응답 호환
+  access_token?: string; // 백엔드가 이 키로 줄 수도 있음
 };
 
-const API_BASE = import.meta.env.VITE_API_BASE;
-
-// (선택) 배포에서 env 제대로 먹는지 확인용 — 확인 끝나면 지워도 됨
-console.log("[VITE_API_BASE]", API_BASE);
+const API_BASE = import.meta.env.VITE_API_BASE; // ✅ 반드시 설정되어 있어야 함
 
 export const apiClient = axios.create({
-  baseURL: API_BASE, // ✅ 이게 없어서 Vercel로 POST가 날아가던 거임
-  withCredentials: true,
+  baseURL: API_BASE,            // ✅ 중요
+  withCredentials: true,        // ✅ refresh 쿠키 전송
   headers: { "Content-Type": "application/json" },
 });
 
@@ -46,6 +43,7 @@ apiClient.interceptors.response.use(
     const status = error?.response?.status;
     const original = error?.config;
 
+    // refresh 자기 자신이면 재시도 금지
     const isRefreshCall = original?.url?.includes("/auth/token/refresh");
     if (status !== 401 || original?._retry || isRefreshCall) {
       return Promise.reject(error);
@@ -53,6 +51,7 @@ apiClient.interceptors.response.use(
 
     original._retry = true;
 
+    // 이미 refresh 중이면 큐에 대기
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         pushQueue((token) => {
@@ -67,6 +66,7 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
+      // ✅ 반드시 백엔드로 가야 함 (baseURL 덕분에 안전)
       const { data } = await apiClient.post<RefreshResponse>("/auth/token/refresh");
       const newToken = data.accessToken ?? data.access_token ?? null;
 
