@@ -19,12 +19,9 @@ export default function CategoryList({
   reorderCategory,
   reorderTodo,
 }: Props) {
-  const filtered = categories.map((c) => ({
-    ...c,
-    // ✅ useCategories에서 Todo.date = yyyy-MM-dd 로 유지 중
-    todos: c.todos.filter((t) => t.date === dateKey),
-  }));
-
+  // ✅ 더 이상 날짜로 필터링하지 않음
+  const filtered = categories;
+ 
   return (
     <div className="sticky top-4">
       <div className="mb-3 px-1">

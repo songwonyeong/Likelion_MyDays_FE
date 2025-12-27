@@ -17,13 +17,12 @@ export default function Main() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const dateKey = useMemo(() => toKey(selectedDate), [selectedDate]);
 
-  // ✅ 날짜 바뀔 때 store도 갱신 + 서버 재조회
+  // ✅ 날짜 바뀔 때: 선택키 저장 + 해당 날짜로 서버 재조회(핵심: dateKey를 인자로 넘김)
   useEffect(() => {
     store.setSelectedDateKey(dateKey);
-    // store.refresh()는 useCategories 내부에서 selectedDateKey를 참조하므로
-    // setSelectedDateKey 후 약간 안정적으로 갱신되게 다음 tick에서 호출
-    Promise.resolve().then(() => store.refresh());
-  }, [dateKey]); // store 넣으면 참조변경으로 재실행될 수 있어서 dateKey만 둠
+    // ✅ tick 밀 필요 없음. 인자로 dateKey 주니까 스테일 이슈 없음.
+    store.refresh(dateKey);
+  }, [dateKey]); // store 넣으면 참조 변경으로 재실행될 수 있어 dateKey만
 
   return (
     <>
@@ -49,7 +48,8 @@ export default function Main() {
                 setBaseDate(new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 1))
               }
               onSelectDate={(d) => setSelectedDate(d)}
-              getMeta={(d) => store.getDayStats(toKey(d))}
+              // ✅ Calendar가 요구하는 Meta 리턴 (Date 그대로 넘김)
+              getMeta={(d) => store.getMetaByDate(d)}
             />
           </section>
 
@@ -61,7 +61,7 @@ export default function Main() {
                 addTodo={(catId, title) => store.addTodo(catId, title, dateKey)}
                 toggleTodo={(catId, todoId) => store.toggleTodo(catId, todoId)}
                 reorderCategory={store.reorderCategory}
-                reorderTodo={store.reorderTodo}
+                reorderTodo={(catId, from, to) => store.reorderTodo(catId, from, to)}
               />
             </div>
           </aside>
