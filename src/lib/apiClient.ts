@@ -4,10 +4,16 @@ import { getAccessToken, setAccessToken, clearAccessToken } from "./tokenStore";
 
 type RefreshResponse = {
   accessToken?: string;
-  access_token?: string; // ✅ 네 백엔드 응답
+  access_token?: string; // 백엔드 응답 호환
 };
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
+// (선택) 배포에서 env 제대로 먹는지 확인용 — 확인 끝나면 지워도 됨
+console.log("[VITE_API_BASE]", API_BASE);
+
 export const apiClient = axios.create({
+  baseURL: API_BASE, // ✅ 이게 없어서 Vercel로 POST가 날아가던 거임
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
